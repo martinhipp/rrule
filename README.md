@@ -1,8 +1,10 @@
 # RRule
 
+[![CI](https://github.com/martinhipp/rrule/actions/workflows/ci.yml/badge.svg)](https://github.com/martinhipp/rrule/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/martinhipp/rrule/graph/badge.svg?token=E7222UGF0A)](https://codecov.io/gh/martinhipp/rrule)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue.svg)](https://www.typescriptlang.org/)
+[![Node: >=20](https://img.shields.io/badge/Node-%3E%3D20-green.svg)](https://nodejs.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Node: >=16](https://img.shields.io/badge/Node-%3E%3D16-green.svg)](https://nodejs.org/)
 
 **RFC 5545 compliant** TypeScript library for parsing, generating, and working with iCalendar recurrence rules.
 
