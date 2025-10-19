@@ -1,5 +1,5 @@
 import type { DateValue } from '@internationalized/date';
-import { formatRRule } from './format';
+import { formatICS } from './format';
 import { generateDates } from './generator';
 import { parseICS } from './parser';
 import {
@@ -73,12 +73,12 @@ export class RRule implements Iterable<DateValue> {
   }
 
   /**
-   * Converts the RRule to an RRULE string.
+   * Converts the RRule to an ICS string with DTSTART and RRULE.
    *
-   * @returns The RRULE string representation
+   * @returns The ICS string representation (e.g., "DTSTART:20250101\nRRULE:FREQ=DAILY;COUNT=10")
    */
   toString() {
-    return formatRRule(this._options);
+    return formatICS(this._options);
   }
 
   get freq() {

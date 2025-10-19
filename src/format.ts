@@ -181,3 +181,21 @@ export function formatRRule(options: ParsedRRuleOptions): string {
 
   return `RRULE:${parts.join(';')}`;
 }
+
+/**
+ * Formats RRuleOptions into a full ICS recurrence block with DTSTART and RRULE.
+ *
+ * @param options - The RRuleOptions to format
+ * @returns The formatted ICS string (e.g., "DTSTART:20250101T100000Z\nRRULE:FREQ=DAILY;COUNT=10")
+ */
+export function formatICS(options: ParsedRRuleOptions): string {
+  const rrule = formatRRule(options);
+
+  if (!options.dtstart) {
+    return rrule;
+  }
+
+  const dtstart = formatDTStart(options.dtstart);
+
+  return `${dtstart}\n${rrule}`;
+}

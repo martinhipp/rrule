@@ -6,11 +6,13 @@ import {
 import { describe, expect, it } from 'vitest';
 import {
   formatDTStart,
+  formatICS,
   formatICSDateValue,
+  formatRRule,
   formatUntilICSDateValue,
   formatWeekdayValue,
 } from '../format';
-import { Weekdays } from '../types';
+import { Frequencies, Weekdays } from '../types';
 
 describe('formatICSDateValue', () => {
   it('should format CalendarDate (date only)', () => {
@@ -209,6 +211,203 @@ describe('formatWeekdayValue', () => {
 
   it('should format zero occurrence as weekday only', () => {
     expect(formatWeekdayValue({ weekday: Weekdays.WE, n: 0 })).toBe('WE');
+  });
+});
+
+describe('formatRRule', () => {
+  it('should format basic FREQ only', () => {
+    expect(formatRRule({ freq: Frequencies.DAILY })).toBe('RRULE:FREQ=DAILY');
+    expect(formatRRule({ freq: Frequencies.WEEKLY })).toBe('RRULE:FREQ=WEEKLY');
+    expect(formatRRule({ freq: Frequencies.MONTHLY })).toBe(
+      'RRULE:FREQ=MONTHLY',
+    );
+  });
+
+  it('should omit INTERVAL=1 (default)', () => {
+    expect(formatRRule({ freq: Frequencies.DAILY, interval: 1 })).toBe(
+      'RRULE:FREQ=DAILY',
+    );
+  });
+
+  it('should include INTERVAL when not 1', () => {
+    expect(formatRRule({ freq: Frequencies.DAILY, interval: 2 })).toBe(
+      'RRULE:FREQ=DAILY;INTERVAL=2',
+    );
+    expect(formatRRule({ freq: Frequencies.WEEKLY, interval: 3 })).toBe(
+      'RRULE:FREQ=WEEKLY;INTERVAL=3',
+    );
+  });
+
+  it('should include COUNT', () => {
+    expect(formatRRule({ freq: Frequencies.DAILY, count: 10 })).toBe(
+      'RRULE:FREQ=DAILY;COUNT=10',
+    );
+  });
+
+  it('should include UNTIL as date', () => {
+    const until = new CalendarDate(2025, 12, 31);
+
+    expect(formatRRule({ freq: Frequencies.DAILY, until })).toBe(
+      'RRULE:FREQ=DAILY;UNTIL=20251231',
+    );
+  });
+
+  it('should include UNTIL as datetime', () => {
+    const until = new CalendarDateTime(2025, 12, 31, 23, 59, 59);
+
+    expect(formatRRule({ freq: Frequencies.DAILY, until })).toBe(
+      'RRULE:FREQ=DAILY;UNTIL=20251231T235959',
+    );
+  });
+
+  it('should include UNTIL as UTC', () => {
+    const until = new ZonedDateTime(2025, 12, 31, 'UTC', 0, 23, 59, 59);
+
+    expect(formatRRule({ freq: Frequencies.DAILY, until })).toBe(
+      'RRULE:FREQ=DAILY;UNTIL=20251231T235959Z',
+    );
+  });
+
+  it('should convert UNTIL to UTC when DTSTART is ZonedDateTime', () => {
+    const dtstart = new ZonedDateTime(2025, 1, 1, 'UTC', 0, 9, 0, 0);
+    const until = new ZonedDateTime(
+      2025,
+      12,
+      31,
+      'America/New_York',
+      -18000000,
+      18,
+      0,
+      0,
+    );
+
+    expect(formatRRule({ freq: Frequencies.DAILY, dtstart, until })).toBe(
+      'RRULE:FREQ=DAILY;UNTIL=20251231T230000Z',
+    );
+  });
+
+  it('should include WKST', () => {
+    expect(formatRRule({ freq: Frequencies.WEEKLY, wkst: Weekdays.SU })).toBe(
+      'RRULE:FREQ=WEEKLY;WKST=SU',
+    );
+    expect(formatRRule({ freq: Frequencies.WEEKLY, wkst: Weekdays.MO })).toBe(
+      'RRULE:FREQ=WEEKLY;WKST=MO',
+    );
+  });
+
+  it('should include BYMONTH', () => {
+    expect(formatRRule({ freq: Frequencies.YEARLY, bymonth: [1, 6, 12] })).toBe(
+      'RRULE:FREQ=YEARLY;BYMONTH=1,6,12',
+    );
+  });
+
+  it('should include BYMONTHDAY', () => {
+    expect(
+      formatRRule({ freq: Frequencies.MONTHLY, bymonthday: [1, 15, -1] }),
+    ).toBe('RRULE:FREQ=MONTHLY;BYMONTHDAY=1,15,-1');
+  });
+
+  it('should include BYYEARDAY', () => {
+    expect(
+      formatRRule({ freq: Frequencies.YEARLY, byyearday: [1, 100, -1] }),
+    ).toBe('RRULE:FREQ=YEARLY;BYYEARDAY=1,100,-1');
+  });
+
+  it('should include BYWEEKNO', () => {
+    expect(
+      formatRRule({ freq: Frequencies.YEARLY, byweekno: [1, 20, -1] }),
+    ).toBe('RRULE:FREQ=YEARLY;BYWEEKNO=1,20,-1');
+  });
+
+  it('should include BYDAY with simple weekdays', () => {
+    expect(
+      formatRRule({
+        freq: Frequencies.WEEKLY,
+        byweekday: [Weekdays.MO, Weekdays.FR],
+      }),
+    ).toBe('RRULE:FREQ=WEEKLY;BYDAY=MO,FR');
+  });
+
+  it('should include BYDAY with occurrences', () => {
+    expect(
+      formatRRule({
+        freq: Frequencies.MONTHLY,
+        byweekday: [
+          { weekday: Weekdays.MO, n: 1 },
+          { weekday: Weekdays.FR, n: -1 },
+        ],
+      }),
+    ).toBe('RRULE:FREQ=MONTHLY;BYDAY=1MO,-1FR');
+  });
+
+  it('should include BYHOUR', () => {
+    expect(formatRRule({ freq: Frequencies.DAILY, byhour: [9, 12, 17] })).toBe(
+      'RRULE:FREQ=DAILY;BYHOUR=9,12,17',
+    );
+  });
+
+  it('should include BYMINUTE', () => {
+    expect(
+      formatRRule({ freq: Frequencies.HOURLY, byminute: [0, 15, 30, 45] }),
+    ).toBe('RRULE:FREQ=HOURLY;BYMINUTE=0,15,30,45');
+  });
+
+  it('should include BYSECOND', () => {
+    expect(formatRRule({ freq: Frequencies.MINUTELY, bysecond: [0, 30] })).toBe(
+      'RRULE:FREQ=MINUTELY;BYSECOND=0,30',
+    );
+  });
+
+  it('should include BYSETPOS', () => {
+    expect(
+      formatRRule({
+        freq: Frequencies.MONTHLY,
+        byweekday: [Weekdays.MO],
+        bysetpos: [1, -1],
+      }),
+    ).toBe('RRULE:FREQ=MONTHLY;BYDAY=MO;BYSETPOS=1,-1');
+  });
+
+  it('should format complex rule with multiple properties', () => {
+    expect(
+      formatRRule({
+        freq: Frequencies.MONTHLY,
+        interval: 2,
+        count: 10,
+        wkst: Weekdays.MO,
+        bymonth: [1, 7],
+        byweekday: [{ weekday: Weekdays.FR, n: -1 }],
+      }),
+    ).toBe(
+      'RRULE:FREQ=MONTHLY;INTERVAL=2;COUNT=10;WKST=MO;BYMONTH=1,7;BYDAY=-1FR',
+    );
+  });
+
+  it('should omit empty BY* arrays', () => {
+    expect(
+      formatRRule({
+        freq: Frequencies.DAILY,
+        bymonth: [],
+        bymonthday: [],
+        byyearday: [],
+      }),
+    ).toBe('RRULE:FREQ=DAILY');
+  });
+});
+
+describe('formatICS', () => {
+  it('should return RRULE string only when DTSTART is not provided', () => {
+    expect(formatICS({ freq: 'DAILY', count: 5 })).toBe(
+      'RRULE:FREQ=DAILY;COUNT=5',
+    );
+  });
+
+  it('should return ICS string when DTSTART is provided', () => {
+    const dtstart = new CalendarDate(2025, 1, 1);
+
+    expect(formatICS({ freq: 'DAILY', count: 5, dtstart })).toBe(
+      'DTSTART:20250101\nRRULE:FREQ=DAILY;COUNT=5',
+    );
   });
 });
 
