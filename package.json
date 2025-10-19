@@ -57,7 +57,7 @@
     "vitest": "^3.2.4"
   },
   "engines": {
-    "node": ">=16"
+    "node": ">=20"
   },
   "dependencies": {
     "@internationalized/date": "^3.10.0"
