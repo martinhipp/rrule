@@ -1,5 +1,6 @@
 # RRule
 
+[![npm version](https://img.shields.io/npm/v/@martinhipp/rrule.svg)](https://www.npmjs.com/package/@martinhipp/rrule)
 [![CI](https://github.com/martinhipp/rrule/actions/workflows/ci.yml/badge.svg)](https://github.com/martinhipp/rrule/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/martinhipp/rrule/graph/badge.svg?token=E7222UGF0A)](https://codecov.io/gh/martinhipp/rrule)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue.svg)](https://www.typescriptlang.org/)
