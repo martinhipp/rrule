@@ -426,5 +426,5 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 ## 🙏 Acknowledgments
 
 - Built with [@internationalized/date](https://react-spectrum.adobe.com/internationalized/date/) for robust date/time handling
-- Inspired by [rrule.js](https://github.com/jakubroztocil/rrule) and [rrule-temporal](https://github.com/bdougherty/rrule-temporal)
+- Inspired by [rrule.js](https://github.com/jkbrzt/rrule) and [rrule-temporal](https://github.com/ggaabe/rrule-temporal)
 - RFC 5545 specification: [https://tools.ietf.org/html/rfc5545](https://tools.ietf.org/html/rfc5545)
