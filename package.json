@@ -1,6 +1,6 @@
 {
   "name": "@martinhipp/rrule",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "RFC 5545 compliant recurrence rule library for parsing and generating iCalendar RRULE patterns",
   "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",
