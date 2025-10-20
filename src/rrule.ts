@@ -84,9 +84,9 @@ export class RRule implements Iterable<DateValue> {
   /**
    * Converts the RRule to an options object with all values deep cloned.
    *
-   * @returns A deep copy of the RRule's options
+   * @returns A deep copy of the RRule's parsed options
    */
-  toObject() {
+  toObject(): ParsedRRuleOptions {
     return {
       freq: this.freq,
       dtstart: this.dtstart?.copy(),
@@ -427,8 +427,11 @@ export class RRule implements Iterable<DateValue> {
    * Sets the options for the RRule.
    *
    * @param options - The RRule options to set
+   * @returns The RRule instance itself
    */
   setOptions(options: RRuleOptions) {
     this._options = sanitizeRRuleOptions({ ...this._options, ...options });
+
+    return this;
   }
 }
