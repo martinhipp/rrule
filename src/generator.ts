@@ -128,9 +128,7 @@ export function* generateDates(
   }
 }
 
-/**
- * Get the expansion function for a given frequency.
- */
+/** Get the expansion function for a given frequency. */
 function getFrequencyExpander(
   freq: Frequency,
 ): (cursor: DateValue, options: ParsedRRuleOptions) => DateValue[] {
@@ -154,9 +152,7 @@ function getFrequencyExpander(
   }
 }
 
-/**
- * Get the start of the period containing the given date.
- */
+/** Get the start of the period containing the given date. */
 function getPeriodStart(date: DateValue, freq: Frequency) {
   if (!isFrequency(freq)) {
     throw new Error(`Unknown RRule frequency: ${freq}`);
@@ -165,9 +161,7 @@ function getPeriodStart(date: DateValue, freq: Frequency) {
   return date;
 }
 
-/**
- * Advance the cursor to the next period.
- */
+/** Advance the cursor to the next period based on frequency and interval. */
 function advancePeriod(cursor: DateValue, freq: string, interval: number) {
   switch (freq) {
     case Frequencies.YEARLY:
@@ -189,10 +183,7 @@ function advancePeriod(cursor: DateValue, freq: string, interval: number) {
   }
 }
 
-/**
- * Advance the cursor to approximately the target date for efficient seeking.
- * This calculates roughly how many periods to skip.
- */
+/** Advance the cursor to approximately the target date by skipping periods for efficient seeking. */
 function advanceCursorToDate(
   cursor: DateValue,
   target: DateValue,
@@ -241,10 +232,7 @@ function advanceCursorToDate(
   }
 }
 
-/**
- * Expand daily occurrences.
- * For DAILY frequency, return the cursor date if it matches BY* filters.
- */
+/** Expand daily occurrences by returning the cursor date if it matches BY* filters. */
 function expandDaily(cursor: DateValue, options: RRuleOptions) {
   const { bymonth = [], bymonthday = [], byweekday = [] } = options;
 
@@ -276,10 +264,7 @@ function expandDaily(cursor: DateValue, options: RRuleOptions) {
   return [cursor];
 }
 
-/**
- * Expand weekly occurrences.
- * Generate all target weekdays in the week.
- */
+/** Expand weekly occurrences by generating all target weekdays in the week. */
 function expandWeekly(cursor: DateValue, options: ParsedRRuleOptions) {
   const { byweekday = [], bymonth = [], bymonthday = [], wkst } = options;
 
@@ -330,10 +315,7 @@ function expandWeekly(cursor: DateValue, options: ParsedRRuleOptions) {
   return results.sort((a, b) => compareDates(a, b));
 }
 
-/**
- * Expand monthly occurrences.
- * Generate all dates in the month matching BYDAY and/or BYMONTHDAY.
- */
+/** Expand monthly occurrences by generating all dates matching BYDAY and/or BYMONTHDAY. */
 function expandMonthly(cursor: DateValue, options: ParsedRRuleOptions) {
   const { bymonth = [], bymonthday = [], byweekday = [] } = options;
 
@@ -391,9 +373,7 @@ function expandMonthly(cursor: DateValue, options: ParsedRRuleOptions) {
   return results.sort((a, b) => compareDates(a, b));
 }
 
-/**
- * Expand BYDAY within a month, handling ordinal positions.
- */
+/** Expand BYDAY within a month, handling ordinal positions (e.g., 1st Monday, last Friday). */
 function expandByWeekdayInMonth(cursor: DateValue, byweekday: WeekdayValue[]) {
   const daysInMonth = getDaysInMonth(cursor);
   const results: DateValue[] = [];
@@ -435,10 +415,7 @@ function expandByWeekdayInMonth(cursor: DateValue, byweekday: WeekdayValue[]) {
   return results;
 }
 
-/**
- * Expand yearly occurrences.
- * Generate all dates in the year matching BY* rules.
- */
+/** Expand yearly occurrences by generating all dates in the year matching BY* rules. */
 function expandYearly(cursor: DateValue, options: ParsedRRuleOptions) {
   const {
     bymonth = [],
@@ -502,10 +479,7 @@ function expandYearly(cursor: DateValue, options: ParsedRRuleOptions) {
   return results.sort((a, b) => compareDates(a, b));
 }
 
-/**
- * Expand by year day (BYYEARDAY).
- * Handles positive and negative day numbers.
- */
+/** Expand by year day (BYYEARDAY), handling positive and negative day numbers. */
 function expandByYearDay(cursor: DateValue, byyearday: number[]) {
   const results: DateValue[] = [];
   const startOfYear = getStartOfYear(cursor);
@@ -551,9 +525,7 @@ function expandByYearDay(cursor: DateValue, byyearday: number[]) {
   return results.sort((a, b) => compareDates(a, b));
 }
 
-/**
- * Expand ordinal BYDAY for whole year (e.g., 5th Monday of the year, last Friday of year).
- */
+/** Expand ordinal BYDAY for whole year (e.g., 5th Monday of the year, last Friday of year). */
 function expandOrdinalByDayInYear(
   cursor: DateValue,
   byweekday: WeekdayValue[],
@@ -610,9 +582,7 @@ function expandOrdinalByDayInYear(
   return results;
 }
 
-/**
- * Expand by week number (BYWEEKNO).
- */
+/** Expand by week number (BYWEEKNO) using ISO 8601 week numbering. */
 function expandByWeekNo(
   cursor: DateValue,
   byweekno: number[],
@@ -691,10 +661,7 @@ function expandByWeekNo(
   return results;
 }
 
-/**
- * Expand hourly occurrences.
- * For sub-daily frequencies, we need datetime types.
- */
+/** Expand hourly occurrences (requires datetime types for sub-daily frequencies). */
 function expandHourly(cursor: DateValue, options: ParsedRRuleOptions) {
   const { bymonth = [], bymonthday = [], byweekday = [] } = options;
 
@@ -726,26 +693,19 @@ function expandHourly(cursor: DateValue, options: ParsedRRuleOptions) {
   return [cursor];
 }
 
-/**
- * Expand minutely occurrences.
- */
+/** Expand minutely occurrences using the same filtering logic as hourly. */
 function expandMinutely(cursor: DateValue, options: ParsedRRuleOptions) {
   // Same filtering logic as hourly
   return expandHourly(cursor, options);
 }
 
-/**
- * Expand secondly occurrences.
- */
+/** Expand secondly occurrences using the same filtering logic as hourly. */
 function expandSecondly(cursor: DateValue, options: ParsedRRuleOptions) {
   // Same filtering logic as hourly
   return expandHourly(cursor, options);
 }
 
-/**
- * Expand a date by time components (BYHOUR, BYMINUTE, BYSECOND).
- * If the date doesn't have time components, or if there are no BY* time rules, return as-is.
- */
+/** Expand a date by time components (BYHOUR, BYMINUTE, BYSECOND). */
 function expandByTime(date: DateValue, options: ParsedRRuleOptions) {
   const { byhour = [], byminute = [], bysecond = [] } = options;
 
@@ -775,10 +735,7 @@ function expandByTime(date: DateValue, options: ParsedRRuleOptions) {
   return results;
 }
 
-/**
- * Apply BYSETPOS to filter positions from an expanded set.
- * If no BYSETPOS, return all dates.
- */
+/** Apply BYSETPOS to filter specific positions from an expanded set of dates. */
 function applyBySetPos(dates: DateValue[], options: RRuleOptions) {
   const { bysetpos = [] } = options;
 

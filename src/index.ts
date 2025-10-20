@@ -1,3 +1,6 @@
+export { formatDTStart, formatICS, formatRRule } from './format';
+export { parseDTStart, parseICS, parseRRule } from './parser';
+
 export { RRule } from './rrule';
 
 export type {

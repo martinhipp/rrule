@@ -138,6 +138,10 @@ export function calculateDifferenceInDays(start: DateValue, end: DateValue) {
   return Math.floor(calculateDifference(start, end) / 86_400_000);
 }
 
+/**
+ * Duration object with broken-down time components.
+ * Used for calculating the difference between two dates.
+ */
 type DateTimeDuration = {
   years?: number;
   months?: number;
@@ -505,6 +509,10 @@ export function getMonthsInYear(date: DateValue) {
   return date.calendar.getMonthsInYear(date);
 }
 
+/**
+ * Date comparison result type.
+ * Returns -1 if first date is before second, 0 if equal, 1 if after.
+ */
 type DateComparison = -1 | 0 | 1;
 
 /**
@@ -524,7 +532,8 @@ export function compareDates(a: DateValue, b: DateValue): DateComparison {
 }
 
 /**
- * Fields to set on a date
+ * Date and time fields that can be set on a DateValue.
+ * Used for creating modified copies of dates with specific field values.
  */
 type DateTimeFields = {
   year?: number;

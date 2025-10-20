@@ -145,6 +145,17 @@ export function sanitizeWeekday(value?: string | Weekday) {
   return;
 }
 
+/**
+ * Sanitize a weekday value.
+ *
+ * Accepts:
+ * - Weekday constants: Weekdays.MO
+ * - String literals: 'MO', '2MO', '-1FR'
+ * - Objects: { weekday: 'MO', n: 2 }
+ *
+ * @param value - The weekday value to sanitize
+ * @returns The sanitized weekday value, or undefined if invalid
+ */
 export function sanitizeWeekdayValue(value?: string | WeekdayValue) {
   if (isWeekdayValue(value)) {
     return value;
@@ -209,7 +220,18 @@ export function validateBySetPos(parsed: ParsedRRuleOptions) {
   );
 }
 
-export function sanitizeRRuleOptions(options: Partial<RRuleOptions>) {
+/**
+ * Sanitize and validate RRuleOptions.
+ *
+ * This function validates all options, applies defaults, and ensures constraints are met.
+ *
+ * @param options - The RRuleOptions to sanitize
+ * @returns The parsed and validated RRuleOptions
+ * @throws {Error} If COUNT and UNTIL are both set
+ * @throws {Error} If BYSETPOS is set without another BYxxx rule
+ * @throws {Error} If any option value is invalid
+ */
+export function sanitizeRRuleOptions(options: RRuleOptions) {
   const parsed: ParsedRRuleOptions = {
     freq: sanitizeFrequency(options.freq),
     dtstart: options.dtstart,

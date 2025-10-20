@@ -110,6 +110,7 @@ new RRule(options: RRuleOptions)
 - `previous(date: DateValue, inclusive?: boolean): DateValue | undefined` - Get last occurrence before date
 - `next(date: DateValue, inclusive?: boolean): DateValue | undefined` - Get first occurrence after date
 - `toString(): string` - Convert to RRULE string
+- `toObject(): ParsedRRuleOptions` - Get a deep copy of the RRule's options
 - `clone(overrides?: RRuleOptions): RRule` - Clone with optional overrides
 - `setOptions(options: RRuleOptions): void` - Update options
 
@@ -153,6 +154,64 @@ const bounded = new RRule({
   count: 365 // ✅ Bounded recurrence
 });
 ```
+
+### Utility Functions
+
+For advanced use cases, you can use the lower-level parsing and formatting utilities to work with RRULE strings directly without creating RRule instances:
+
+#### Parsing Functions
+
+```typescript
+import { parseICS, parseRRule, parseDTStart } from '@martinhipp/rrule';
+
+// Parse a full ICS string (DTSTART + RRULE)
+const options1 = parseICS(`
+  DTSTART:20250101T090000Z
+  RRULE:FREQ=DAILY;COUNT=10
+`);
+
+// Parse just the RRULE line
+const options2 = parseRRule('RRULE:FREQ=WEEKLY;BYDAY=MO,WE,FR');
+
+// Parse just the DTSTART line
+const dtstart = parseDTStart('DTSTART:20250101T090000Z');
+```
+
+**Available parsing functions:**
+- `parseICS(icsString: string, strict?: boolean): RRuleOptions` - Parse full ICS string with DTSTART and RRULE
+- `parseRRule(rruleString: string, strict?: boolean): RRuleOptions` - Parse RRULE line only
+- `parseDTStart(dtstartString: string, strict?: boolean): DateValue` - Parse DTSTART line only
+
+#### Formatting Functions
+
+```typescript
+import { formatICS, formatRRule, formatDTStart } from '@martinhipp/rrule';
+import { CalendarDate } from '@internationalized/date';
+
+// Format options to full ICS string
+const icsString = formatICS({
+  freq: 'DAILY',
+  count: 10,
+  dtstart: new CalendarDate(2025, 1, 1)
+});
+// => "DTSTART:20250101\nRRULE:FREQ=DAILY;COUNT=10"
+
+// Format just the RRULE line
+const rruleString = formatRRule({
+  freq: 'WEEKLY',
+  byweekday: ['MO', 'WE', 'FR']
+});
+// => "RRULE:FREQ=WEEKLY;BYDAY=MO,WE,FR"
+
+// Format just the DTSTART line
+const dtstartString = formatDTStart(new CalendarDate(2025, 1, 1));
+// => "DTSTART:20250101"
+```
+
+**Available formatting functions:**
+- `formatICS(options: ParsedRRuleOptions): string` - Format to full ICS string with DTSTART and RRULE
+- `formatRRule(options: ParsedRRuleOptions): string` - Format to RRULE line only
+- `formatDTStart(date: DateValue): string` - Format to DTSTART line only
 
 ### RRuleOptions
 

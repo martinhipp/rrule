@@ -66,7 +66,7 @@ export class RRule implements Iterable<DateValue> {
    * @param strict - Whether to use strict parsing (default: true)
    * @returns The new RRule instance
    */
-  static fromString(icsString: string, strict = true): RRule {
+  static fromString(icsString: string, strict = true) {
     const options = parseICS(icsString, strict);
 
     return new RRule(options);
@@ -79,6 +79,33 @@ export class RRule implements Iterable<DateValue> {
    */
   toString() {
     return formatICS(this._options);
+  }
+
+  /**
+   * Converts the RRule to an options object with all values deep cloned.
+   *
+   * @returns A deep copy of the RRule's options
+   */
+  toObject() {
+    return {
+      freq: this.freq,
+      dtstart: this.dtstart?.copy(),
+      interval: this.interval,
+      count: this.count,
+      until: this.until?.copy(),
+      wkst: this.wkst,
+      bysetpos: this.bysetpos && [...this.bysetpos],
+      bymonth: this.bymonth && [...this.bymonth],
+      bymonthday: this.bymonthday && [...this.bymonthday],
+      byyearday: this.byyearday && [...this.byyearday],
+      byweekno: this.byweekno && [...this.byweekno],
+      byweekday: this.byweekday?.map((weekday) =>
+        typeof weekday === 'string' ? weekday : { ...weekday },
+      ),
+      byhour: this.byhour && [...this.byhour],
+      byminute: this.byminute && [...this.byminute],
+      bysecond: this.bysecond && [...this.bysecond],
+    };
   }
 
   get freq() {
@@ -109,6 +136,9 @@ export class RRule implements Iterable<DateValue> {
     return this._options.count;
   }
 
+  /**
+   * @throws {Error} If COUNT and UNTIL are both set
+   */
   set count(value: number | undefined) {
     if (value !== undefined && this._options.until !== undefined) {
       throw new Error('COUNT and UNTIL are mutually exclusive');
@@ -121,6 +151,9 @@ export class RRule implements Iterable<DateValue> {
     return this._options.until;
   }
 
+  /**
+   * @throws {Error} If COUNT and UNTIL are both set
+   */
   set until(value: DateValue | undefined) {
     if (value !== undefined && this._options.count !== undefined) {
       throw new Error('COUNT and UNTIL are mutually exclusive');
@@ -141,10 +174,12 @@ export class RRule implements Iterable<DateValue> {
     return this._options.bysetpos;
   }
 
+  /**
+   * @throws {Error} If BYSETPOS is set without another BYxxx rule
+   */
   set bysetpos(value: number[] | undefined) {
     this._options.bysetpos = sanitizeNumberArray(value, -366, 366, false);
 
-    // Validate that BYSETPOS is used with at least one other BYxxx rule
     if (!validateBySetPos(this._options)) {
       throw new Error('BYSETPOS must be used with another BYxxx rule');
     }
@@ -218,6 +253,9 @@ export class RRule implements Iterable<DateValue> {
     return this._maxIterations;
   }
 
+  /**
+   * @throws {Error} If maxIterations is less than 1
+   */
   set maxIterations(value: number | undefined) {
     if (value !== undefined && value < 1) {
       throw new Error('maxIterations must be greater than 0');
@@ -381,8 +419,8 @@ export class RRule implements Iterable<DateValue> {
    * @param overrides - The partial options to override
    * @returns The new RRule instance with merged options
    */
-  clone(overrides?: Partial<RRuleOptions>) {
-    return new RRule({ ...this._options, ...overrides });
+  clone(overrides?: RRuleOptions) {
+    return new RRule({ ...this.toObject(), ...overrides });
   }
 
   /**

@@ -14,7 +14,8 @@ import {
   parseWeekday,
   parseWeekdayValue,
 } from './parse';
-import { Frequencies, type RRuleOptions, type WeekdayValue } from './types';
+import type { ParsedRRuleOptions, RRuleOptions, WeekdayValue } from './types';
+import { Frequencies } from './types';
 import {
   isNumberInRange,
   splitOnce,
@@ -71,6 +72,9 @@ export function parseICS(icsString: string, strict = true) {
   return rruleOptions;
 }
 
+/**
+ * Parses a DTSTART parameter value.
+ */
 function parseDTStartParam(params: string | undefined, key: 'TZID' | 'VALUE') {
   if (!params) return;
 
@@ -84,10 +88,11 @@ function parseDTStartParam(params: string | undefined, key: 'TZID' | 'VALUE') {
  * Parses a DTSTART line into a DateValue.
  *
  * @param value - The DTSTART line to parse
- * @param strict - Whether to use strict parsing
+ * @param strict - Whether to use strict parsing (default: true)
  * @returns The parsed DateValue
+ * @throws {Error} If strict is true and the DTSTART line is invalid
  */
-function parseDTStart(value: string, strict: boolean) {
+export function parseDTStart(value: string, strict = true) {
   value = value.trim();
 
   const match = value.match(/^DTSTART([^:]*):(.+)$/i);
@@ -102,6 +107,7 @@ function parseDTStart(value: string, strict: boolean) {
 
   const [, params, dateValue] = match;
   const tzid = parseDTStartParam(params, 'TZID');
+  // Not used as the DateValue determines the value type
   // const valueType = parseDTStartParam(params, "VALUE");
 
   let date = parseICSDateValue(dateValue);
@@ -131,7 +137,7 @@ function parseDTStart(value: string, strict: boolean) {
  * Parses an RRULE string into RRuleOptions.
  *
  * @param rruleString - The RRULE string to parse (e.g., "RRULE:FREQ=DAILY;INTERVAL=2;COUNT=10")
- * @param strict - If true, throws an error if any RRULE parameter is invalid (default: true)
+ * @param strict - Whether to use strict parsing (default: true)
  * @returns The parsed RRuleOptions
  * @throws {Error} If the RRULE string is invalid, or if strict is true and any RRULE parameter is invalid
  *
@@ -152,7 +158,7 @@ export function parseRRule(rruleString: string, strict = true) {
   const [, rrule] = match;
 
   const params = parseList(rrule, ';');
-  const options: Partial<RRuleOptions> = {};
+  const options: RRuleOptions = {};
 
   for (const param of params) {
     try {
@@ -280,7 +286,7 @@ export function parseRRule(rruleString: string, strict = true) {
     throw new Error('Invalid RRule: COUNT and UNTIL are mutually exclusive');
   }
 
-  return options as RRuleOptions;
+  return options as ParsedRRuleOptions;
 }
 
 /**
@@ -313,6 +319,9 @@ function parseRRuleInterval(value: string, strict = true) {
   }
 }
 
+/**
+ * Parses a COUNT value into a positive integer
+ */
 function parseRRuleCount(value: string, strict = true) {
   try {
     return parsePositiveInteger(value);
@@ -343,7 +352,7 @@ function parseRRuleUntil(value: string, strict = true) {
 /**
  * Parses a WKST value (MO, TU, WE, TH, FR, SA, SU)
  */
-function parseRRuleWkst(value: string, strict: boolean) {
+function parseRRuleWkst(value: string, strict = true) {
   if (!value.trim()) return;
 
   try {
