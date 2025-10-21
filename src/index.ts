@@ -5,6 +5,7 @@ export { RRule } from './rrule';
 
 export type {
   Frequency,
+  ParsedRRuleOptions,
   RRuleOptions,
   Weekday,
   WeekdayValue,

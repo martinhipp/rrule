@@ -14,6 +14,15 @@ describe('RRule', () => {
       expect(rrule.count).toBe(10);
     });
 
+    it('should create RRule with no options', () => {
+      const rrule = new RRule();
+
+      expect(rrule.freq).toBe(Frequencies.YEARLY);
+      expect(rrule.interval).toBeUndefined();
+      expect(rrule.count).toBeUndefined();
+      expect(rrule.dtstart).toBeUndefined();
+    });
+
     it('should sanitize options on construction', () => {
       const rrule = new RRule({
         freq: Frequencies.DAILY,
@@ -330,6 +339,69 @@ describe('RRule', () => {
       expect(cloned.freq).toBe(Frequencies.DAILY);
       expect(cloned.count).toBe(20);
       expect(original.count).toBe(10); // Original unchanged
+    });
+  });
+
+  describe('toObject', () => {
+    it('should return a deep copy of options', () => {
+      const rrule = new RRule({
+        freq: Frequencies.DAILY,
+        dtstart: new CalendarDate(2025, 1, 1),
+        count: 10,
+        bymonth: [1, 6, 12],
+      });
+
+      const options = rrule.toObject();
+
+      expect(options.freq).toBe(Frequencies.DAILY);
+      expect(options.count).toBe(10);
+      expect(options.bymonth).toEqual([1, 6, 12]);
+
+      // Verify deep copy - mutating returned object shouldn't affect original
+      options.bymonth?.push(3);
+
+      expect(rrule.bymonth).toEqual([1, 6, 12]);
+    });
+
+    it('should deep clone byweekday with ordinal values', () => {
+      const rrule = new RRule({
+        freq: Frequencies.MONTHLY,
+        byweekday: [
+          Weekdays.MO,
+          { weekday: Weekdays.FR, n: -1 },
+        ],
+      });
+
+      const options = rrule.toObject();
+      const byweekday = options.byweekday ?? [];
+      const weekday = byweekday[0];
+      const weekdayObject = byweekday[1];
+
+      expect(byweekday).toHaveLength(2);
+      expect(weekday).toBe(Weekdays.MO);
+      expect(weekdayObject).toEqual({ weekday: Weekdays.FR, n: -1 });
+
+      // Verify deep copy of weekday objects
+      if (typeof weekdayObject === 'object') {
+        weekdayObject.n = 1;
+      }
+
+      const rruleByweekday = rrule.byweekday ?? [];
+
+      expect(rruleByweekday[1]).toEqual({ weekday: Weekdays.FR, n: -1 });
+    });
+
+    it('should copy DateValue objects', () => {
+      const dtstart = new CalendarDate(2025, 1, 1);
+      const rrule = new RRule({
+        freq: Frequencies.DAILY,
+        dtstart,
+      });
+
+      const options = rrule.toObject();
+
+      expect(options.dtstart).not.toBe(dtstart);
+      expect(options.dtstart?.compare(dtstart)).toBe(0);
     });
   });
 
