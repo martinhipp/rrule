@@ -474,6 +474,17 @@ describe('getWeekOfYear', () => {
 
     expect(week).toBeGreaterThan(0);
   });
+
+  it('should return last week of previous year for dates before first week start', () => {
+    // 2025 starts on Wednesday (Jan 1)
+    // With Monday week start, first Monday is Jan 6
+    // So Jan 1-5 are in the last week of 2024
+    const date = new CalendarDate(2025, 1, 1); // Wednesday
+    const week = getWeekOfYear(date, Weekdays.MO);
+
+    // Should return week 53 of 2024 (last week of previous year)
+    expect(week).toBe(53);
+  });
 });
 
 describe('getWeeksInYear', () => {
@@ -488,6 +499,16 @@ describe('getWeeksInYear', () => {
     // Find a year that starts on Monday
     const date2024 = new CalendarDate(2024, 1, 1); // 2024 starts on Monday
     const weeks = getWeeksInYear(date2024, Weekdays.MO);
+
+    expect(weeks).toBe(53);
+  });
+
+  it('should return 53 for leap year starting one day before week start', () => {
+    // 2012 was a leap year starting on Sunday
+    // With Monday week start (wkst = 0), Sunday is index 6, which is (0 - 1 + 7) % 7 = 6
+    // This tests the leap year edge case: firstWeekday === (wkstIndex - 1 + 7) % 7
+    const date2012 = new CalendarDate(2012, 1, 1); // Sunday, leap year
+    const weeks = getWeeksInYear(date2012, Weekdays.MO);
 
     expect(weeks).toBe(53);
   });

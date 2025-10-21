@@ -11,6 +11,7 @@ import {
   parseIntegerList,
   parseList,
   parsePositiveInteger,
+  parseWeekday,
   parseWeekdayValue,
 } from '../parse';
 import { Frequencies, Weekdays } from '../types';
@@ -197,6 +198,38 @@ describe('parseFrequency', () => {
       'Invalid frequency: BIWEEKLY',
     );
     expect(() => parseFrequency('')).toThrow('Invalid frequency');
+  });
+});
+
+describe('parseWeekday', () => {
+  it('should parse valid weekdays', () => {
+    expect(parseWeekday('MO')).toBe(Weekdays.MO);
+    expect(parseWeekday('TU')).toBe(Weekdays.TU);
+    expect(parseWeekday('WE')).toBe(Weekdays.WE);
+    expect(parseWeekday('TH')).toBe(Weekdays.TH);
+    expect(parseWeekday('FR')).toBe(Weekdays.FR);
+    expect(parseWeekday('SA')).toBe(Weekdays.SA);
+    expect(parseWeekday('SU')).toBe(Weekdays.SU);
+  });
+
+  it('should parse case-insensitively', () => {
+    expect(parseWeekday('mo')).toBe(Weekdays.MO);
+    expect(parseWeekday('fr')).toBe(Weekdays.FR);
+  });
+
+  it('should trim whitespace', () => {
+    expect(parseWeekday(' MO ')).toBe(Weekdays.MO);
+    expect(parseWeekday('  FR  ')).toBe(Weekdays.FR);
+  });
+
+  it('should throw on empty string', () => {
+    expect(() => parseWeekday('')).toThrow('Invalid weekday');
+    expect(() => parseWeekday('   ')).toThrow('Invalid weekday');
+  });
+
+  it('should throw on invalid weekday', () => {
+    expect(() => parseWeekday('XX')).toThrow('Invalid weekday: XX');
+    expect(() => parseWeekday('MON')).toThrow('Invalid weekday: MON');
   });
 });
 

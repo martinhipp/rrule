@@ -1,9 +1,71 @@
 import type { CalendarDateTime } from '@internationalized/date';
 import { CalendarDate, ZonedDateTime } from '@internationalized/date';
 import { describe, expect, it } from 'vitest';
-import { parseICS, parseRRule } from '../parser';
+import { parseDTStart, parseICS, parseRRule } from '../parser';
 import type { WeekdayValue } from '../types';
 import { Frequencies, Weekdays } from '../types';
+
+describe('parseDTStart', () => {
+  it('should parse date-only DTSTART', () => {
+    const result = parseDTStart('DTSTART:20250101');
+
+    expect(result).toBeInstanceOf(CalendarDate);
+    expect(result?.year).toBe(2025);
+    expect(result?.month).toBe(1);
+    expect(result?.day).toBe(1);
+  });
+
+  it('should parse datetime DTSTART', () => {
+    const result = parseDTStart('DTSTART:20250101T101530');
+
+    expect((result as CalendarDateTime).year).toBe(2025);
+    expect((result as CalendarDateTime).month).toBe(1);
+    expect((result as CalendarDateTime).day).toBe(1);
+    expect((result as CalendarDateTime).hour).toBe(10);
+  });
+
+  it('should parse UTC datetime DTSTART', () => {
+    const result = parseDTStart('DTSTART:20250101T101530Z');
+
+    expect(result).toBeInstanceOf(ZonedDateTime);
+    expect((result as ZonedDateTime).timeZone).toBe('UTC');
+  });
+
+  it('should parse DTSTART with TZID', () => {
+    const result = parseDTStart(
+      'DTSTART;TZID=America/New_York:20250101T101530',
+    );
+
+    expect(result).toBeInstanceOf(ZonedDateTime);
+    expect((result as ZonedDateTime).timeZone).toBe('America/New_York');
+  });
+
+  it('should throw in strict mode when TZID is used with UTC datetime', () => {
+    expect(() =>
+      parseDTStart('DTSTART;TZID=America/New_York:20250101T101530Z', true),
+    ).toThrow(
+      'Invalid DTSTART: TZID is not compatible with UTC datetime values',
+    );
+  });
+
+  it('should throw in strict mode when TZID is used with date-only', () => {
+    expect(() =>
+      parseDTStart('DTSTART;TZID=America/New_York:20250101', true),
+    ).toThrow('Invalid DTSTART: TZID is not compatible with date-only values');
+  });
+
+  it('should throw in strict mode for invalid DTSTART format', () => {
+    expect(() => parseDTStart('INVALID:20250101', true)).toThrow(
+      'Invalid DTSTART: INVALID:20250101',
+    );
+  });
+
+  it('should return undefined in lenient mode for invalid DTSTART format', () => {
+    const result = parseDTStart('INVALID:20250101', false);
+
+    expect(result).toBeUndefined();
+  });
+});
 
 describe('parseICS', () => {
   it('should parse ICS string with DTSTART and RRULE', () => {
@@ -117,7 +179,7 @@ describe('parseRRule', () => {
 
     it('should throw if FREQ is invalid in strict mode', () => {
       expect(() => parseRRule('RRULE:FREQ=INVALID', true)).toThrow(
-        'Invalid FREQ value',
+        'Invalid FREQ value: INVALID',
       );
     });
 
@@ -167,11 +229,17 @@ describe('parseRRule', () => {
       expect(() => parseRRule('RRULE:FREQ=DAILY;COUNT=-5', true)).toThrow(
         'Invalid COUNT value: -5',
       );
+      expect(() => parseRRule('RRULE:FREQ=DAILY;COUNT=abc', true)).toThrow(
+        'Invalid COUNT value: abc',
+      );
     });
 
     it('should skip invalid COUNT in lenient mode', () => {
       const result = parseRRule('RRULE:FREQ=DAILY;COUNT=0', false);
       expect(result.count).toBeUndefined();
+
+      const result2 = parseRRule('RRULE:FREQ=DAILY;COUNT=abc', false);
+      expect(result2.count).toBeUndefined();
     });
   });
 
@@ -254,7 +322,7 @@ describe('parseRRule', () => {
       }
     });
 
-    it('should throw on invalid WKST', () => {
+    it('should throw on invalid WKST in strict mode', () => {
       expect(() => parseRRule('RRULE:FREQ=WEEKLY;WKST=XX', true)).toThrow(
         'Invalid WKST value: XX',
       );
@@ -297,10 +365,22 @@ describe('parseRRule', () => {
       expect(byweekday[2]).toEqual({ weekday: Weekdays.SU, n: -1 });
     });
 
+    it('should throw on invalid BYDAY in strict mode', () => {
+      expect(() => parseRRule('RRULE:FREQ=WEEKLY;BYDAY=MO,XX', true)).toThrow(
+        'Invalid BYDAY value: XX',
+      );
+    });
+
     it('should skip empty BYDAY in lenient mode', () => {
       const result = parseRRule('RRULE:FREQ=WEEKLY;BYDAY=', false);
 
       expect(result.byweekday).toBeUndefined();
+    });
+
+    it('should handle BYDAY with only commas/whitespace', () => {
+      const result = parseRRule('RRULE:FREQ=WEEKLY;BYDAY=,,,', false);
+
+      expect(result.byweekday).toEqual([]);
     });
 
     it('should filter invalid weekdays in lenient mode', () => {
@@ -333,6 +413,18 @@ describe('parseRRule', () => {
       const result = parseRRule('RRULE:FREQ=YEARLY;BYMONTH=0,6,13', false);
 
       expect(result.bymonth).toEqual([6]);
+    });
+
+    it('should skip empty BYMONTH in lenient mode', () => {
+      const result = parseRRule('RRULE:FREQ=YEARLY;BYMONTH=', false);
+
+      expect(result.bymonth).toBeUndefined();
+    });
+
+    it('should handle BYMONTH with only commas/whitespace', () => {
+      const result = parseRRule('RRULE:FREQ=YEARLY;BYMONTH= , , ', false);
+
+      expect(result.bymonth).toEqual([]);
     });
   });
 

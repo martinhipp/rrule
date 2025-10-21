@@ -55,7 +55,7 @@ export class RRule implements Iterable<DateValue> {
    *
    * @param options - The RRule options
    */
-  constructor(options: RRuleOptions) {
+  constructor(options: RRuleOptions = {}) {
     this._options = sanitizeRRuleOptions(options);
   }
 
