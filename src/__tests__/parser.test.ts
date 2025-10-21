@@ -18,10 +18,10 @@ describe('parseDTStart', () => {
   it('should parse datetime DTSTART', () => {
     const result = parseDTStart('DTSTART:20250101T101530');
 
-    expect(result?.year).toBe(2025);
-    expect(result?.month).toBe(1);
-    expect(result?.day).toBe(1);
-    expect('hour' in result! && result.hour).toBe(10);
+    expect((result as CalendarDateTime).year).toBe(2025);
+    expect((result as CalendarDateTime).month).toBe(1);
+    expect((result as CalendarDateTime).day).toBe(1);
+    expect((result as CalendarDateTime).hour).toBe(10);
   });
 
   it('should parse UTC datetime DTSTART', () => {
@@ -32,7 +32,9 @@ describe('parseDTStart', () => {
   });
 
   it('should parse DTSTART with TZID', () => {
-    const result = parseDTStart('DTSTART;TZID=America/New_York:20250101T101530');
+    const result = parseDTStart(
+      'DTSTART;TZID=America/New_York:20250101T101530',
+    );
 
     expect(result).toBeInstanceOf(ZonedDateTime);
     expect((result as ZonedDateTime).timeZone).toBe('America/New_York');
@@ -41,7 +43,9 @@ describe('parseDTStart', () => {
   it('should throw in strict mode when TZID is used with UTC datetime', () => {
     expect(() =>
       parseDTStart('DTSTART;TZID=America/New_York:20250101T101530Z', true),
-    ).toThrow('Invalid DTSTART: TZID is not compatible with UTC datetime values');
+    ).toThrow(
+      'Invalid DTSTART: TZID is not compatible with UTC datetime values',
+    );
   });
 
   it('should throw in strict mode when TZID is used with date-only', () => {
@@ -51,9 +55,9 @@ describe('parseDTStart', () => {
   });
 
   it('should throw in strict mode for invalid DTSTART format', () => {
-    expect(() =>
-      parseDTStart('INVALID:20250101', true),
-    ).toThrow('Invalid DTSTART: INVALID:20250101');
+    expect(() => parseDTStart('INVALID:20250101', true)).toThrow(
+      'Invalid DTSTART: INVALID:20250101',
+    );
   });
 
   it('should return undefined in lenient mode for invalid DTSTART format', () => {

@@ -366,10 +366,7 @@ describe('RRule', () => {
     it('should deep clone byweekday with ordinal values', () => {
       const rrule = new RRule({
         freq: Frequencies.MONTHLY,
-        byweekday: [
-          Weekdays.MO,
-          { weekday: Weekdays.FR, n: -1 },
-        ],
+        byweekday: [Weekdays.MO, { weekday: Weekdays.FR, n: -1 }],
       });
 
       const options = rrule.toObject();
